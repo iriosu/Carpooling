@@ -14,6 +14,7 @@ function GenerateInputs(vt, ct, fm, gm)
         exit()
     end
 
+
     nvt = length(vt)
     nct = length(ct)
     nvct = nvt*nct
