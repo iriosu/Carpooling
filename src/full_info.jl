@@ -41,6 +41,7 @@ m = Model(solver=GurobiSolver(MIPGap = 1e-12))
 @variable(m, x[i=1:N,j=1:N], Bin)
 @variable(m, t[i=1:N]>=0)
 @variable(m, p[i=1:N]>=0)
+@variable(m, q[i=1:N])
 
 @constraint(m, cap[i=1:N], sum(x[i,j] for j=1:N) <= kappa[i]*x[i,i])
 @constraint(m, spu[i=1:N], sum(x[k,i] for k=1:N) <= 1)
@@ -49,8 +50,14 @@ m = Model(solver=GurobiSolver(MIPGap = 1e-12))
 # @constraint(m, pri[i=1:N], p[i] <= sum(x[k,i] for k=1:N if k!=i))
 # @constraint(m, IR[i=1:N], t[i]-p[i] - sum(c[i,j]*x[i,j] for j=1:N) >= -w[i] ) #*sum(x[k,i] for k=1:N)
 
+# Incentives with a single variabe = net transfer
+@constraint(m, pri[i=1:N], q[i] >= -sum(x[k,i] for k=1:N if k!=i))
+@constraint(m, IR[i=1:N], q[i] - sum(c[i,j]*x[i,j] for j=1:N) >= -w[i] ) #*sum(x[k,i] for k=1:N)
+
+
+@objective(m, Min, sum(q[i] for i=1:N))
 # @objective(m, Max, sum(p[i] for i=1:N) - sum(t[i] for i=1:N))
-@objective(m, Max, sum(x[i,j]*(w[j] - c[i,j]) for i=1:N for j=1:N))
+# @objective(m, Max, sum(x[i,j]*(w[j] - c[i,j]) for i=1:N for j=1:N))
 
 print(m)
 
@@ -59,10 +66,13 @@ obj = getobjectivevalue(m)
 x_vals = getvalue(x)
 t_vals = getvalue(t)
 p_vals = getvalue(p)
+t_vals = getvalue(t)
+q_vals = getvalue(q)
 
 println(x_vals)
 println(t_vals)
 println(p_vals)
+println(q_vals)
 
 
 # @constraint(m, tra[i=1:N], sum(t[i,j] for j=1:N) <= x[i,i])
